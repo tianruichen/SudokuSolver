@@ -22,7 +22,7 @@ for row in range(9):
         if inner:
             columns.append(int(inner))
         else:
-            columns.append(-1)
+            columns.append(0)
     rows.append(columns)
 
 rowscopy = rows[:]
@@ -39,4 +39,4 @@ print rowscopy
 #elem.clear()
 #elem.send_keys("pycon")
 #elem.send_keys(Keys.RETURN)
-#driver.close()
+driver.close()
