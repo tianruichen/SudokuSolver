@@ -7,7 +7,7 @@ from sudokuSolver import SudokuSolver
 from time import sleep
 
 driver = webdriver.Chrome()
-driver.get("http://view.websudoku.com/")
+driver.get("http://view.websudoku.com/?level=4")
 assert "Web Sudoku" in driver.title
 rows = []
 for row in range(9):
@@ -25,8 +25,10 @@ for row in range(9):
             columns.append(0)
     rows.append(columns)
 
+#test = [[4, 7, 0, 9, 0, 0, 0, 8, 0], [0, 0, 2, 0, 0, 0, 0, 0, 9], [8, 5, 0, 0, 2, 3, 0, 0, 0], [9, 4, 0, 0, 3, 0, 0, 0, 0], [0, 2, 0, 0, 7, 0, 0, 5, 0], [0, 0, 0, 0, 8, 0, 0, 6, 3], [0, 0, 0, 4, 5, 0, 0, 9, 6], [2, 0, 0, 0, 0, 0, 4, 0, 0], [0, 8, 0, 0, 0, 7, 0, 2, 5]]
 solver = SudokuSolver(rows)
-print solver.newGrid
+solution = solver.getSolution()
+print solution
 
 for row in range(9):
     for col in range(9):
@@ -37,8 +39,7 @@ for row in range(9):
         innerelem = element.find_element_by_css_selector("*")
         inner = innerelem.get_attribute('value')
         if not inner:
-            #sleep(0.2)
-            innerelem.send_keys(str(solver.newGrid[row][col]))
+            innerelem.send_keys(str(solution[row][col]))
 
 #square = driver.find_element_by_xpath("//td[@id='c00']")
 #rint element

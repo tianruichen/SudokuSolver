@@ -7,43 +7,33 @@ class SudokuSolver:
     def __init__(self, grid):
         self.grid = grid
         self.newGrid = grid[:]
-        self.possibleValues = {}
-        self.empty = []
+        self.savedStates = []
         self.remaining = 0
-        self.initializeEmptySquares()
+        self.initializeConstraints()
         self.solveSudoku()
+        self.valid = True
 
-    def initializeEmptySquares(self):
-        rows = []
+    def initializeConstraints(self):
+        possibleValues = {}
         for y in range(len(self.grid)):
-            squares = []
             for x in range(len(self.grid[0])):
                 if self.grid[y][x] == 0:
-                    self.possibleValues[(x,y)] = set()
-                    squares.append((x,y))
+                    possibleValues[(x,y)] = set()
+                    for i in range(1, 10):
+                        if self.isPossibleValue(x, y, i):
+                            possibleValues[(x,y)].add(i)
                     self.remaining += 1
-            rows.append(squares)
-        self.empty = rows
+        self.savedStates.append(possibleValues)
 
-    def getPossibleValues(self):
-        possibleValues = {}
-        for key in self.possibleValues.keys():
-            possibleValues[key] = set()
-        for key in self.possibleValues.keys():
-            x, y = key
-            for i in range(1, 10):
-                if self.isPossibleValue(x, y, i):
-                    possibleValues[key].add(i)
-        return possibleValues
-
-    def fillBestSquare(self):
-        possibleValues = self.getPossibleValues()
+    def getNewPossibleValues(self, possibleValues):
+        newPossibleValues = {}
         for key in possibleValues.keys():
-            if self.newGrid[key[1]][key[0]] == 0 and len(possibleValues[key]) == 1:
-                x, y = key
-                self.newGrid[y][x] = list(possibleValues[key])[0]
-                self.possibleValues.pop(key, None)
-                self.remaining -= 1
+            newPossibleValues[key] = set()
+            x, y = key
+            for elem in list(possibleValues[key]):
+                if self.isPossibleValue(x, y, elem):
+                    newPossibleValues[key].add(elem)
+        return newPossibleValues
 
     def isPossibleValue(self, x, y, value):
         for i in range(9):
@@ -63,6 +53,55 @@ class SudokuSolver:
                         return False
         return True
 
+    def fillBestSquare(self):
+        latestState = self.savedStates[-1]
+        possibleValues = self.getNewPossibleValues(latestState)
+        remaining = len(possibleValues.keys())
+        backupLowest = 10
+        backupKey = None
+        reset = False
+        for key in possibleValues.keys():    
+            if self.newGrid[key[1]][key[0]] == 0 and len(possibleValues[key]) == 1:
+                x, y = key
+                self.newGrid[y][x] = list(possibleValues[key])[0]
+                possibleValues.pop(key, None)
+                self.remaining -= 1
+                break
+            elif len(possibleValues[key]) == 0:
+                if len(self.savedStates) == 1:
+                    return False
+                else:
+                    self.savedStates.pop()
+                    latestState = self.savedStates[-1]
+                    self.resetToState(latestState)
+                    reset = True
+                    break
+            elif backupLowest > len(list(possibleValues[key])):
+                backupLowest = len(list(possibleValues[key]))
+                backupKey = key
+
+        if not reset:
+            if remaining == len(possibleValues.keys()):
+                value = list(possibleValues[backupKey])[0]
+                self.newGrid[backupKey[1]][backupKey[0]] = value
+                self.remaining -= 1
+                possibleValues[backupKey].remove(value)
+                self.savedStates[-1] = possibleValues
+                valueCopy = dict(possibleValues)
+                valueCopy.pop(backupKey, None)
+                self.savedStates.append(valueCopy)
+            else:
+                self.savedStates[-1] = possibleValues
+        return True
+
+    def resetToState(self, state):
+        for key in state.keys():
+            x, y = key
+            if self.newGrid[y][x] != 0:
+                self.newGrid[y][x] = 0
+                self.remaining += 1
+
+
     def fullCheck(self):
         for y in range(9):
             for x in range(9):
@@ -74,11 +113,14 @@ class SudokuSolver:
         return True
 
     def solveSudoku(self):
-        remaining = self.remaining
         while self.remaining > 0:
-            self.fillBestSquare()
-            if remaining == self.remaining:
-                print "uh-oh"
-                print self.getPossibleValues()
-            remaining = self.remaining
+            validPuzzle = self.fillBestSquare()
+            if not validPuzzle:
+                self.valid = False
+                break
+    
+    def getSolution(self):
+        if not self.valid:
+            return None
+        return self.newGrid
 
