@@ -1,1 +1,4 @@
 # SudokuSolver
+A sudoku-solving python class that takes in the sudoku game grid as a 2d array in the format of columns inside rows. The solving algorithm first finds the set of possible values each empty square can take on and then fills in squares with only a single possible value. When there are only squares with 2 or more possible values, a possible value for a square with the lowest number of possible values is chosen and filled in. This branching point is saved on a stack, so when the algorithm finds squares with no valid values, it can backtrack to this point and restart the search.
+
+A python script for selenium is also included to demo the algorithm on a randomized websudoku.com evil difficulty puzzle.
