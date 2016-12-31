@@ -1,7 +1,3 @@
-import random
-import itertools
-import math
-
 class SudokuSolver:
 
     def __init__(self, grid):
